@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from .errors import InputError
-from .security import resolve_safe_path
+from .security import redact_secrets, resolve_safe_path
 
 _ALLOWED_CONTEXT_SUFFIXES = frozenset({".md", ".txt", ".json", ".csv"})
 
@@ -17,7 +17,7 @@ def load_explicit_context(path: Path, root: Path, max_bytes: int = 200_000) -> s
         raise InputError("Context file is required.")
 
     safe_path = resolve_safe_path(path, root, must_exist=True)
-    name = safe_path.name
+    name = redact_secrets(safe_path.name or "context")
     if safe_path.suffix.lower() not in _ALLOWED_CONTEXT_SUFFIXES:
         raise InputError(f"Context file '{name}' has an unsupported extension.")
 
@@ -31,5 +31,5 @@ def load_explicit_context(path: Path, root: Path, max_bytes: int = 200_000) -> s
 
     try:
         return data.decode("utf-8", errors="strict")
-    except UnicodeDecodeError as error:
-        raise InputError(f"Context file '{name}' must be valid UTF-8.") from error
+    except UnicodeDecodeError:
+        raise InputError(f"Context file '{name}' must be valid UTF-8.") from None

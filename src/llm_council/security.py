@@ -26,13 +26,15 @@ def resolve_safe_path(path: Path, root: Path, *, must_exist: bool) -> Path:
 
     resolved_root = root.resolve(strict=False)
     supplied_path = path if path.is_absolute() else resolved_root / path
-    resolved_path = supplied_path.resolve(strict=False)
     name = _safe_basename(path)
+    error_type = InputError if must_exist else OutputError
+
+    _reject_symlink_components(supplied_path, name, error_type)
+
+    resolved_path = supplied_path.resolve(strict=False)
 
     if not resolved_path.is_relative_to(resolved_root):
-        raise InputError(f"Path '{name}' must be inside the working directory.")
-
-    _reject_symlink_components(supplied_path, resolved_root, name)
+        raise error_type(f"Path '{name}' must be inside the working directory.")
 
     if must_exist:
         if not resolved_path.exists():
@@ -45,22 +47,19 @@ def resolve_safe_path(path: Path, root: Path, *, must_exist: bool) -> Path:
     return resolved_path
 
 
-def _reject_symlink_components(path: Path, root: Path, name: str) -> None:
-    """Reject a supplied leaf or ancestor symlink below the resolved root."""
+def _reject_symlink_components(
+    path: Path, name: str, error_type: type[InputError | OutputError]
+) -> None:
+    """Reject every symlink component in the supplied path before resolution."""
 
-    try:
-        relative_path = path.relative_to(root)
-    except ValueError:
-        return
-
-    current = root
-    for component in relative_path.parts:
+    current = Path(path.anchor)
+    for component in path.parts[1:]:
         current = current / component
         if current.is_symlink():
-            raise InputError(f"Path '{name}' must not be a symlink.")
+            raise error_type(f"Path '{name}' must not be a symlink.")
 
 
 def _safe_basename(path: Path) -> str:
     """Return the only file identifier that may appear in user-facing errors."""
 
-    return path.name or "context"
+    return redact_secrets(path.name or "context")

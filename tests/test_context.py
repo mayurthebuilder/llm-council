@@ -63,6 +63,8 @@ def test_rejects_invalid_utf8_without_exposing_file_contents(tmp_path: Path) -> 
 
     assert "binary.md" in str(error.value)
     assert "secret-token-value" not in str(error.value)
+    assert error.value.__cause__ is None
+    assert error.value.__suppress_context__
 
 
 def test_rejects_unsupported_context_extension(tmp_path: Path) -> None:
@@ -76,6 +78,19 @@ def test_rejects_unsupported_context_extension(tmp_path: Path) -> None:
 
     assert "brief.pdf" in str(error.value)
     assert "raw-pdf-body" not in str(error.value)
+
+
+def test_redacts_credential_bearing_context_filename_in_errors(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    root.mkdir()
+    context = root / "token=real-provider-secret.pdf"
+    context.write_text("raw-pdf-body", encoding="utf-8")
+
+    with pytest.raises(InputError) as error:
+        load_explicit_context(context, root)
+
+    assert "real-provider-secret" not in str(error.value)
+    assert "[REDACTED]" in str(error.value)
 
 
 def test_rejects_context_larger_than_byte_limit_without_reading_contents(tmp_path: Path) -> None:

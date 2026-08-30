@@ -18,11 +18,11 @@ def test_redacts_assignment_and_google_shaped_key() -> None:
     assert redacted.count("[REDACTED]") == 2
 
 
-def test_rejects_path_outside_root(tmp_path: Path) -> None:
+def test_rejects_output_path_outside_root(tmp_path: Path) -> None:
     root = tmp_path / "project"
     root.mkdir()
 
-    with pytest.raises(InputError, match="inside the working directory"):
+    with pytest.raises(OutputError, match="inside the working directory"):
         resolve_safe_path(root / ".." / "private.txt", root, must_exist=False)
 
 
@@ -36,6 +36,40 @@ def test_rejects_symlink_even_when_target_is_inside_root(tmp_path: Path) -> None
 
     with pytest.raises(InputError, match="alias.md"):
         resolve_safe_path(alias, root, must_exist=True)
+
+
+def test_rejects_external_symlink_that_resolves_inside_root(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    root.mkdir()
+    target = root / "actual.md"
+    target.write_text("safe context", encoding="utf-8")
+    external_directory = tmp_path / "external"
+    external_directory.mkdir()
+    alias = external_directory / "alias.md"
+    alias.symlink_to(target)
+
+    with pytest.raises(InputError, match="alias.md"):
+        resolve_safe_path(alias, root, must_exist=True)
+
+
+@pytest.mark.parametrize(
+    ("filename", "credential"),
+    [
+        ("token=real-provider-secret.bin", "real-provider-secret"),
+        ("AIzaabcdefghijklmnopqrstuvwxyz123456.md", "AIza"),
+    ],
+)
+def test_redacts_credentials_in_path_error_basenames(
+    tmp_path: Path, filename: str, credential: str
+) -> None:
+    root = tmp_path / "project"
+    root.mkdir()
+
+    with pytest.raises(InputError) as error:
+        resolve_safe_path(root / filename, root, must_exist=True)
+
+    assert credential not in str(error.value)
+    assert "[REDACTED]" in str(error.value)
 
 
 def test_returns_resolved_existing_file_inside_root(tmp_path: Path) -> None:
@@ -55,3 +89,15 @@ def test_rejects_directory_as_an_output_path(tmp_path: Path) -> None:
 
     with pytest.raises(OutputError, match="reports"):
         resolve_safe_path(output_directory, root, must_exist=False)
+
+
+def test_rejects_symlink_output_path_as_output_error(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    root.mkdir()
+    target = root / "actual.md"
+    target.write_text("safe output", encoding="utf-8")
+    alias = root / "alias.md"
+    alias.symlink_to(target)
+
+    with pytest.raises(OutputError, match="alias.md"):
+        resolve_safe_path(alias, root, must_exist=False)
