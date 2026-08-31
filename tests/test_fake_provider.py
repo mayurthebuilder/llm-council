@@ -5,6 +5,8 @@ import json
 
 import pytest
 
+from llm_council.models import AdvisorResult, CouncilDecision, PeerReview
+from llm_council.parsing import parse_model
 from llm_council.providers.base import CompletionRequest, Provider
 from llm_council.providers.fake import DeterministicProvider
 
@@ -14,7 +16,13 @@ def _request(phase: str) -> CompletionRequest:
         phase=phase,
         system="Return a structured decision.",
         user="A fictional billing decision.",
-        metadata={"advisor_id": "advisor-1", "lens": "strategy"},
+        metadata={
+            "advisor_id": "advisor-1",
+            "lens": "strategy",
+            "candidate_response_ids": ["Response B", "Response D"],
+            "advisor_count": 3,
+            "review_count": 2,
+        },
     )
 
 
@@ -81,7 +89,9 @@ async def test_fake_provider_records_completion_timestamps() -> None:
 
     provider = DeterministicProvider(delay_seconds=0.001)
 
-    await asyncio.gather(provider.complete(_request("advisor")), provider.complete(_request("review")))
+    await asyncio.gather(
+        provider.complete(_request("advisor")), provider.complete(_request("review"))
+    )
 
     assert len(provider.request_timestamps) == 2
     assert {record.request.phase for record in provider.request_timestamps} == {"advisor", "review"}
@@ -92,3 +102,27 @@ def test_provider_protocol_is_runtime_checkable() -> None:
     """A provider with the public completion method must satisfy the boundary protocol."""
 
     assert isinstance(DeterministicProvider(), Provider)
+
+
+@pytest.mark.asyncio
+async def test_fake_advisor_payload_has_required_response_id() -> None:
+    """A missing response ID prevents strict parsing in real orchestration."""
+    provider = DeterministicProvider()
+    advisor = parse_model(await provider.complete(_request("advisor")), AdvisorResult)
+    assert advisor.response_id
+
+
+@pytest.mark.asyncio
+async def test_fake_review_ranks_actual_candidates() -> None:
+    """A hardcoded label can rank a nonexistent candidate."""
+    provider = DeterministicProvider()
+    review = parse_model(await provider.complete(_request("review")), PeerReview)
+    assert review.ranked_response_ids == ["Response B", "Response D"]
+
+
+@pytest.mark.asyncio
+async def test_fake_chairman_uses_actual_counts() -> None:
+    """Hardcoded counts misrepresent quorum-degraded runs."""
+    provider = DeterministicProvider()
+    chairman = parse_model(await provider.complete(_request("chairman")), CouncilDecision)
+    assert (chairman.advisor_count, chairman.review_count) == (3, 2)

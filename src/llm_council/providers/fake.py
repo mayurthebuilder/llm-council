@@ -44,6 +44,7 @@ def _phase_payload(request: CompletionRequest) -> dict[str, object]:
 
     if request.phase == "advisor":
         return {
+            "response_id": "draft-response",
             "analysis": "The hosted option reduces near-term implementation risk.",
             "recommendation": "Run a time-boxed hosted billing pilot before committing.",
             "assumptions": ["The team needs a launch path within one quarter."],
@@ -53,7 +54,7 @@ def _phase_payload(request: CompletionRequest) -> dict[str, object]:
     if request.phase == "review":
         return {
             "reviewer_id": str(request.metadata.get("advisor_id", "reviewer")),
-            "ranked_response_ids": ["Response A"],
+            "ranked_response_ids": request.metadata.get("candidate_response_ids", ["Response A"]),
             "critique": "The response makes its tradeoff explicit.",
             "missing_evidence": ["Comparable implementation cost estimates."],
         }
@@ -66,6 +67,6 @@ def _phase_payload(request: CompletionRequest) -> dict[str, object]:
         "risks": ["The pilot could underrepresent integration complexity."],
         "next_actions": ["Define pilot success criteria and migration triggers."],
         "confidence": "moderate",
-        "advisor_count": 5,
-        "review_count": 5,
+        "advisor_count": request.metadata.get("advisor_count", 5),
+        "review_count": request.metadata.get("review_count", 5),
     }
