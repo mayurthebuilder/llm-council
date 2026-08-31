@@ -116,6 +116,26 @@ def test_google_adapter_rejects_missing_key_without_exposing_environment_values(
     assert "unit-test-secret" not in str(error.value)
 
 
+def test_google_adapter_converts_sdk_import_runtime_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A non-ImportError SDK loader failure must not escape with credential text."""
+
+    monkeypatch.setenv("GOOGLE_API_KEY", "unit-test-key")
+
+    def fail_import(name: str) -> ModuleType:
+        raise RuntimeError(f"cannot import {name}: token=unit-test-secret")
+
+    monkeypatch.setattr(google_provider.importlib, "import_module", fail_import)
+
+    with pytest.raises(ProviderError) as error:
+        GoogleGenAIProvider()
+
+    assert "unit-test-secret" not in str(error.value)
+    assert "token=" not in str(error.value)
+    assert "Google provider initialization failed" in str(error.value)
+    assert error.value.__cause__ is None
+    assert error.value.__suppress_context__
+
+
 def test_google_adapter_redacts_sdk_initialization_error(monkeypatch: pytest.MonkeyPatch) -> None:
     """A credential-shaped SDK initialization error must not escape unchanged."""
 
@@ -134,6 +154,32 @@ def test_google_adapter_redacts_sdk_initialization_error(monkeypatch: pytest.Mon
     assert "unit-test-secret" not in str(error.value)
     assert "token=" not in str(error.value)
     assert "Google provider initialization failed" in str(error.value)
+
+
+@pytest.mark.asyncio
+async def test_google_adapter_converts_configuration_runtime_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """SDK configuration construction must stay inside the safe provider boundary."""
+
+    monkeypatch.setenv("GOOGLE_API_KEY", "unit-test-key")
+    _install_fake_google(monkeypatch)
+
+    class FailingConfig:
+        def __init__(self, **kwargs: Any) -> None:
+            raise RuntimeError("invalid configuration token=unit-test-secret")
+
+    genai = sys.modules["google.genai"]
+    monkeypatch.setattr(genai.types, "GenerateContentConfig", FailingConfig)
+
+    with pytest.raises(ProviderError) as error:
+        await GoogleGenAIProvider().complete(_request())
+
+    assert "unit-test-secret" not in str(error.value)
+    assert "token=" not in str(error.value)
+    assert "Google provider request failed" in str(error.value)
+    assert error.value.__cause__ is None
+    assert error.value.__suppress_context__
 
 
 @pytest.mark.asyncio
@@ -156,3 +202,33 @@ async def test_google_adapter_redacts_sdk_error_text(monkeypatch: pytest.MonkeyP
     assert "unit-test-secret" not in str(error.value)
     assert "token=" not in str(error.value)
     assert "Google provider request failed" in str(error.value)
+
+
+@pytest.mark.asyncio
+async def test_google_adapter_converts_response_text_runtime_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An SDK response property failure must not expose its raw diagnostic text."""
+
+    monkeypatch.setenv("GOOGLE_API_KEY", "unit-test-key")
+    _install_fake_google(monkeypatch)
+
+    class FailingResponse:
+        @property
+        def text(self) -> str:
+            raise RuntimeError("response decoding token=unit-test-secret")
+
+    async def return_failing_response(**kwargs: Any) -> FailingResponse:
+        return FailingResponse()
+
+    provider = GoogleGenAIProvider()
+    provider._client.aio.models.generate_content = return_failing_response
+
+    with pytest.raises(ProviderError) as error:
+        await provider.complete(_request())
+
+    assert "unit-test-secret" not in str(error.value)
+    assert "token=" not in str(error.value)
+    assert "Google provider request failed" in str(error.value)
+    assert error.value.__cause__ is None
+    assert error.value.__suppress_context__
