@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from llm_council import renderers
 from llm_council.errors import OutputError
 from llm_council.models import CouncilDecision
 from llm_council.renderers import render_html, render_json, render_markdown, write_output
@@ -52,6 +53,16 @@ def test_html_renderer_escapes_untrusted_text_and_uses_only_fixed_markup() -> No
     assert "<script>" not in rendered
     assert "<h1>Council Decision</h1>" in rendered
     assert "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" in rendered
+
+
+def test_html_renderer_escapes_hostile_execution_metadata_keys() -> None:
+    decision = _decision()
+    decision.execution_metadata["<img src=x onerror=alert(1)> & detail"] = 1
+
+    rendered = render_html(decision)
+
+    assert "&lt;img src=x onerror=alert(1)&gt; &amp; detail: 1" in rendered
+    assert "<img src=x onerror=alert(1)>" not in rendered
 
 
 def test_write_output_creates_content_inside_root(tmp_path: Path) -> None:
@@ -132,3 +143,99 @@ def test_write_output_cleans_temporary_file_when_target_appears_during_publish(
 
     assert target.read_text(encoding="utf-8") == "racing writer"
     assert list(root.glob(".llm-council-*.tmp")) == []
+
+
+def test_write_output_rejects_parent_symlink_swap_during_temporary_creation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = tmp_path / "project"
+    nested = root / "nested"
+    external = tmp_path / "external"
+    nested.mkdir(parents=True)
+    external.mkdir()
+    held = root / "held"
+    original_open = os.open
+    swapped = False
+
+    def swap_before_descriptor_relative_create(
+        name: str | bytes,
+        flags: int,
+        mode: int = 0o777,
+        *,
+        dir_fd: int | None = None,
+    ) -> int:
+        nonlocal swapped
+        if not swapped and dir_fd is not None and flags & os.O_CREAT:
+            nested.rename(held)
+            nested.symlink_to(external, target_is_directory=True)
+            swapped = True
+        if dir_fd is None:
+            return original_open(name, flags, mode)
+        return original_open(name, flags, mode, dir_fd=dir_fd)
+
+    monkeypatch.setattr(renderers.os, "open", swap_before_descriptor_relative_create)
+
+    with pytest.raises(OutputError):
+        write_output("decision", Path("nested/report.md"), root)
+
+    assert swapped
+    assert not (external / "report.md").exists()
+    assert list(external.glob(".llm-council-*.tmp")) == []
+    assert list(held.glob(".llm-council-*.tmp")) == []
+
+
+def test_write_output_rejects_parent_symlink_swap_during_publication(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = tmp_path / "project"
+    nested = root / "nested"
+    external = tmp_path / "external"
+    nested.mkdir(parents=True)
+    external.mkdir()
+    held = root / "held"
+    original_link = os.link
+    swapped = False
+
+    def swap_before_descriptor_relative_link(
+        source: str | bytes,
+        destination: str | bytes,
+        *args: object,
+        **kwargs: object,
+    ) -> None:
+        nonlocal swapped
+        if not swapped and "src_dir_fd" in kwargs and "dst_dir_fd" in kwargs:
+            nested.rename(held)
+            nested.symlink_to(external, target_is_directory=True)
+            swapped = True
+        original_link(source, destination, *args, **kwargs)
+
+    monkeypatch.setattr(renderers.os, "link", swap_before_descriptor_relative_link)
+
+    with pytest.raises(OutputError):
+        write_output("decision", Path("nested/report.md"), root)
+
+    assert swapped
+    assert not (external / "report.md").exists()
+    assert not (held / "report.md").exists()
+    assert list(external.glob(".llm-council-*.tmp")) == []
+    assert list(held.glob(".llm-council-*.tmp")) == []
+
+
+def test_write_output_ignores_temporary_cleanup_failure_after_publish(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = tmp_path / "project"
+    root.mkdir()
+    original_unlink = os.unlink
+
+    def fail_temporary_cleanup(path: str | bytes, *args: object, **kwargs: object) -> None:
+        if Path(path).name.startswith(".llm-council-"):
+            raise OSError("cleanup failure")
+        original_unlink(path, *args, **kwargs)
+
+    monkeypatch.setattr(renderers.os, "unlink", fail_temporary_cleanup)
+
+    output = write_output("decision", Path("report.md"), root)
+
+    assert output == root / "report.md"
+    assert output.read_text(encoding="utf-8") == "decision"

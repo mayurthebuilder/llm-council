@@ -5,7 +5,8 @@ from __future__ import annotations
 import html
 import json
 import os
-import tempfile
+import stat
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -102,51 +103,184 @@ def write_output(content: str, path: Path, root: Path, overwrite: bool = False) 
     """Atomically publish content inside root without a silent overwrite by default."""
 
     target = resolve_safe_path(path, root, must_exist=False)
-    if target.exists() and not overwrite:
-        raise OutputError("Output file already exists.")
-
-    temporary_path: Path | None = None
+    root_path = root.resolve(strict=False)
+    parent_parts, target_name = _output_components(target, root_path)
+    root_descriptor: int | None = None
+    parent_descriptor: int | None = None
+    temporary_name: str | None = None
     try:
-        descriptor, temporary_name = tempfile.mkstemp(
-            prefix=".llm-council-", suffix=".tmp", dir=target.parent
-        )
-        temporary_path = Path(temporary_name)
+        root_descriptor, parent_descriptor = _open_output_parent(root_path, parent_parts)
+        if not _destination_is_current(root_path, root_descriptor, parent_descriptor, parent_parts):
+            raise OutputError("Output destination changed during write.")
+        if _entry_exists(parent_descriptor, target_name) and not overwrite:
+            raise OutputError("Output file already exists.")
+
+        temporary_name, descriptor = _create_temporary_file(parent_descriptor)
         with os.fdopen(descriptor, "w", encoding="utf-8") as temporary_file:
             temporary_file.write(content)
             temporary_file.flush()
             os.fsync(temporary_file.fileno())
 
-        target = resolve_safe_path(target, root, must_exist=False)
-        if target.exists() and not overwrite:
+        if not _destination_is_current(root_path, root_descriptor, parent_descriptor, parent_parts):
+            raise OutputError("Output destination changed during write.")
+        if _entry_exists(parent_descriptor, target_name) and not overwrite:
             raise OutputError("Output file already exists.")
         if overwrite:
-            temporary_path.replace(target)
+            os.replace(
+                temporary_name,
+                target_name,
+                src_dir_fd=parent_descriptor,
+                dst_dir_fd=parent_descriptor,
+            )
         else:
-            _publish_without_replacing(temporary_path, target)
-        temporary_path = None
+            _publish_without_replacing(temporary_name, target_name, parent_descriptor)
+        temporary_name = None
+        if not _destination_is_current(root_path, root_descriptor, parent_descriptor, parent_parts):
+            _best_effort_unlink(target_name, parent_descriptor)
+            raise OutputError("Output destination changed during write.")
         return target
     except OutputError:
         raise
-    except OSError:
+    except (NotImplementedError, OSError, TypeError):
         raise OutputError("Unable to write output.") from None
     finally:
-        if temporary_path is not None:
-            try:
-                temporary_path.unlink(missing_ok=True)
-            except OSError:
-                pass
+        if temporary_name is not None and parent_descriptor is not None:
+            _best_effort_unlink(temporary_name, parent_descriptor)
+        if parent_descriptor is not None:
+            _close_descriptor(parent_descriptor)
+        if root_descriptor is not None:
+            _close_descriptor(root_descriptor)
 
 
-def _publish_without_replacing(temporary_path: Path, target: Path) -> None:
-    """Atomically create target from a sibling temporary file without replacement."""
+def _output_components(target: Path, root: Path) -> tuple[tuple[str, ...], str]:
+    """Return descriptor-safe parent and filename components for a validated target."""
+
+    relative = target.relative_to(root)
+    if not relative.parts or relative.name in {"", "."}:
+        raise OutputError("Output path must name a file.")
+    return relative.parts[:-1], relative.name
+
+
+def _open_output_parent(root: Path, parent_parts: tuple[str, ...]) -> tuple[int, int]:
+    """Open a root-pinned output parent without following symlink components."""
+
+    directory_flags = _directory_flags()
+    root_descriptor = os.open(root, directory_flags)
+    parent_descriptor = os.dup(root_descriptor)
+    try:
+        for component in parent_parts:
+            next_descriptor = os.open(component, directory_flags, dir_fd=parent_descriptor)
+            _close_descriptor(parent_descriptor)
+            parent_descriptor = next_descriptor
+    except (NotImplementedError, OSError, TypeError):
+        _close_descriptor(parent_descriptor)
+        _close_descriptor(root_descriptor)
+        raise OutputError("Unable to access output destination.") from None
+    return root_descriptor, parent_descriptor
+
+
+def _directory_flags() -> int:
+    """Return the fail-closed flags needed for descriptor-relative directory traversal."""
 
     try:
-        os.link(temporary_path, target)
+        return os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    except AttributeError:
+        raise OutputError("Secure output paths are unavailable on this platform.") from None
+
+
+def _create_temporary_file(parent_descriptor: int) -> tuple[str, int]:
+    """Create a private sibling temporary file using the pinned parent descriptor."""
+
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
+    for _ in range(10):
+        temporary_name = f".llm-council-{uuid.uuid4().hex}.tmp"
+        try:
+            descriptor = os.open(temporary_name, flags, 0o600, dir_fd=parent_descriptor)
+        except FileExistsError:
+            continue
+        except (NotImplementedError, OSError, TypeError):
+            raise OutputError("Unable to write output.") from None
+        return temporary_name, descriptor
+    raise OutputError("Unable to reserve output storage.")
+
+
+def _destination_is_current(
+    root_path: Path, root_descriptor: int, parent_descriptor: int, parent_parts: tuple[str, ...]
+) -> bool:
+    """Confirm that the visible destination still names the pinned parent directory."""
+
+    try:
+        root_stat = os.stat(root_path, follow_symlinks=False)
+        if (root_stat.st_dev, root_stat.st_ino) != _descriptor_identity(root_descriptor):
+            return False
+        visible_parent = os.dup(root_descriptor)
+        try:
+            for component in parent_parts:
+                next_descriptor = os.open(component, _directory_flags(), dir_fd=visible_parent)
+                _close_descriptor(visible_parent)
+                visible_parent = next_descriptor
+            return _descriptor_identity(visible_parent) == _descriptor_identity(parent_descriptor)
+        finally:
+            _close_descriptor(visible_parent)
+    except (NotImplementedError, OSError, TypeError):
+        return False
+
+
+def _descriptor_identity(descriptor: int) -> tuple[int, int]:
+    details = os.fstat(descriptor)
+    return details.st_dev, details.st_ino
+
+
+def _entry_exists(parent_descriptor: int, name: str) -> bool:
+    """Check a leaf entry without following a target symlink."""
+
+    try:
+        details = os.stat(name, dir_fd=parent_descriptor, follow_symlinks=False)
+    except FileNotFoundError:
+        return False
+    except (NotImplementedError, OSError, TypeError):
+        raise OutputError("Unable to access output destination.") from None
+    if stat.S_ISLNK(details.st_mode):
+        raise OutputError("Output destination must not be a symlink.")
+    if stat.S_ISDIR(details.st_mode):
+        raise OutputError("Output path must name a file.")
+    return True
+
+
+def _publish_without_replacing(temporary_name: str, target_name: str, parent_descriptor: int) -> None:
+    """Atomically create a new target without replacement inside one pinned directory."""
+
+    try:
+        os.link(
+            temporary_name,
+            target_name,
+            src_dir_fd=parent_descriptor,
+            dst_dir_fd=parent_descriptor,
+            follow_symlinks=False,
+        )
     except FileExistsError:
         raise OutputError("Output file already exists.") from None
-    except OSError:
+    except (NotImplementedError, OSError, TypeError):
         raise OutputError("Unable to write output.") from None
-    temporary_path.unlink()
+    _best_effort_unlink(temporary_name, parent_descriptor)
+
+
+def _best_effort_unlink(name: str, parent_descriptor: int) -> None:
+    """Remove a temporary or rolled-back entry without masking a completed publish."""
+
+    try:
+        os.unlink(name, dir_fd=parent_descriptor)
+    except (NotImplementedError, OSError, TypeError):
+        pass
+
+
+def _close_descriptor(descriptor: int) -> None:
+    """Close a descriptor without allowing cleanup failures to escape."""
+
+    try:
+        os.close(descriptor)
+    except OSError:
+        pass
 
 
 def _markdown_list_section(title: str, values: list[str]) -> str:
