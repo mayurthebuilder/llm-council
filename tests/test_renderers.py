@@ -211,12 +211,12 @@ def test_write_output_rejects_parent_symlink_swap_during_publication(
 
     monkeypatch.setattr(renderers.os, "link", swap_before_descriptor_relative_link)
 
-    with pytest.raises(OutputError):
-        write_output("decision", Path("nested/report.md"), root)
+    output = write_output("decision", Path("nested/report.md"), root)
 
     assert swapped
+    assert output == nested / "report.md"
     assert not (external / "report.md").exists()
-    assert not (held / "report.md").exists()
+    assert (held / "report.md").read_text(encoding="utf-8") == "decision"
     assert list(external.glob(".llm-council-*.tmp")) == []
     assert list(held.glob(".llm-council-*.tmp")) == []
 
@@ -239,3 +239,44 @@ def test_write_output_ignores_temporary_cleanup_failure_after_publish(
 
     assert output == root / "report.md"
     assert output.read_text(encoding="utf-8") == "decision"
+
+
+def test_write_output_never_deletes_another_writers_leaf_after_publication(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = tmp_path / "project"
+    nested = root / "nested"
+    external = tmp_path / "external"
+    nested.mkdir(parents=True)
+    external.mkdir()
+    held = root / "held"
+    target = nested / "report.md"
+    original_link = os.link
+    replaced = False
+
+    def replace_leaf_then_swap_parent(
+        source: str | bytes,
+        destination: str | bytes,
+        *args: object,
+        **kwargs: object,
+    ) -> None:
+        nonlocal replaced
+        original_link(source, destination, *args, **kwargs)
+        replacement = nested / "replacement.md"
+        replacement.write_text("other writer", encoding="utf-8")
+        replacement.replace(target)
+        nested.rename(held)
+        nested.symlink_to(external, target_is_directory=True)
+        replaced = True
+
+    monkeypatch.setattr(renderers.os, "link", replace_leaf_then_swap_parent)
+
+    try:
+        output = write_output("decision", Path("nested/report.md"), root)
+    except OutputError:
+        output = nested / "report.md"
+
+    assert replaced
+    assert output == nested / "report.md"
+    assert not (external / "report.md").exists()
+    assert (held / "report.md").read_text(encoding="utf-8") == "other writer"

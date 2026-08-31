@@ -100,7 +100,14 @@ ul {{ padding-left: 1.25rem; }} li + li {{ margin-top: .45rem; }}
 
 
 def write_output(content: str, path: Path, root: Path, overwrite: bool = False) -> Path:
-    """Atomically publish content inside root without a silent overwrite by default."""
+    """Atomically publish content inside root without a silent overwrite by default.
+
+    File operations are pinned to descriptors opened without following symlinks, so a
+    substituted parent path is never followed. Another process can still rename a
+    directory after publication, so the returned pathname is not a durable guarantee
+    that the output remains visible at that name. A completed publication is never
+    rolled back by name, preserving data another writer may have subsequently placed.
+    """
 
     target = resolve_safe_path(path, root, must_exist=False)
     root_path = root.resolve(strict=False)
@@ -135,9 +142,6 @@ def write_output(content: str, path: Path, root: Path, overwrite: bool = False) 
         else:
             _publish_without_replacing(temporary_name, target_name, parent_descriptor)
         temporary_name = None
-        if not _destination_is_current(root_path, root_descriptor, parent_descriptor, parent_parts):
-            _best_effort_unlink(target_name, parent_descriptor)
-            raise OutputError("Output destination changed during write.")
         return target
     except OutputError:
         raise
