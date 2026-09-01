@@ -85,7 +85,11 @@ def _phase_payload(request: CompletionRequest) -> dict[str, object]:
         ],
         "assumptions": ["The fictional company has no verified baseline for qualified demand."],
         "risks": [
-            "SEO, AEO, and GEO tactics cannot guarantee rankings, citations, traffic, or revenue."
+            (
+                "This fixed simulation does not establish recommendation quality or factual "
+                "superiority, and SEO, AEO, and GEO tactics cannot guarantee rankings, "
+                "citations, traffic, leads, or revenue."
+            )
         ],
         "next_actions": [
             (

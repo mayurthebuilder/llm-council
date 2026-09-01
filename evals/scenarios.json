@@ -47,11 +47,11 @@
       "question": "How should this fictional B2B SaaS site improve conventional search discovery, answer-engine eligibility, and clarity for generative search systems?",
       "context": "The fictional site has basic product and help pages but no supplied crawl audit, query research, structured-data validation, entity review, source citations, expert attribution, original research, or search-platform performance data. Keep SEO, answer engine optimization, and generative engine optimization conceptually distinct. Recommend testable technical, content, authority, and measurement work without promising rankings, citations, traffic, leads, or revenue.",
       "focus_areas": [
-        "technical and on-page SEO",
-        "answer-first AEO content and eligibility",
-        "GEO entity clarity, retrieval, and citation-worthiness",
-        "original evidence and expert attribution",
-        "platform evidence gaps and measurement boundaries"
+        "brand and audience entity clarity",
+        "growth and channel integration",
+        "technical SEO, answer-first AEO, and retrieval-focused GEO",
+        "original evidence, expert attribution, and content feasibility",
+        "platform evidence gaps, measurement, and marketing risk"
       ]
     }
   ]
