@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "evaluation_scope": "Deterministic offline pipeline and structure evaluation only. These fictional scenarios do not evaluate recommendation accuracy or quality and are not evidence of search ranking, generative citation, traffic, lead, or revenue outcomes.",
+  "scenarios": [
+    {
+      "id": "b2b-saas-launch-strategy",
+      "title": "Fictional B2B SaaS launch strategy",
+      "question": "How should this fictional B2B SaaS product stage a digital marketing launch that builds qualified demand without scaling unvalidated channels?",
+      "context": "The fictional product helps small operations teams document recurring workflows. The supplied brief proposes one English-language launch market, a twelve-week learning window, and a small cross-functional team. No customer interviews, search-demand study, conversion baseline, competitor evidence, or channel performance data has been supplied. Treat all audience, message, demand, and performance expectations as hypotheses requiring validation.",
+      "focus_areas": [
+        "brand and audience strategy",
+        "growth and channel sequencing",
+        "SEO, AEO, and GEO foundations",
+        "creative and content feasibility",
+        "measurement, evidence gaps, and marketing risk"
+      ]
+    },
+    {
+      "id": "paid-organic-channel-mix",
+      "title": "Fictional paid-versus-organic channel mix",
+      "question": "How should this fictional marketing team divide an initial learning budget between paid and organic channels?",
+      "context": "The fictional team can run a limited twelve-week experiment across paid search, professional social media, lifecycle email, partner outreach, and owned educational content. No verified acquisition cost, conversion rate, retention, incrementality, attribution, or search-demand evidence is available. Recommend gates and experiments rather than a guaranteed allocation or commercial result.",
+      "focus_areas": [
+        "paid and organic tradeoffs",
+        "audience and positioning assumptions",
+        "SEO, AEO, and GEO content discovery",
+        "creative distribution formats",
+        "instrumentation, attribution limits, and stop rules"
+      ]
+    },
+    {
+      "id": "campaign-positioning-creative-direction",
+      "title": "Fictional campaign positioning and creative direction",
+      "question": "Which positioning territory and creative direction should this fictional digital campaign validate first?",
+      "context": "The fictional campaign may emphasize time saved, process clarity, or reduced handoff friction for small operations teams. The brief contains no validated customer language, differentiated proof, brand-lift research, message testing, or creative performance evidence. Preserve brand trust, identify unsupported claims, and propose bounded message and format experiments.",
+      "focus_areas": [
+        "segmentation, positioning, and differentiation",
+        "campaign concept and creative feasibility",
+        "channel-specific distribution",
+        "SEO, AEO, and GEO-compatible evidence-led content",
+        "brand, compliance, and measurement risk"
+      ]
+    },
+    {
+      "id": "seo-aeo-geo-discoverability",
+      "title": "Fictional SEO, AEO, and GEO discoverability plan",
+      "question": "How should this fictional B2B SaaS site improve conventional search discovery, answer-engine eligibility, and clarity for generative search systems?",
+      "context": "The fictional site has basic product and help pages but no supplied crawl audit, query research, structured-data validation, entity review, source citations, expert attribution, original research, or search-platform performance data. Keep SEO, answer engine optimization, and generative engine optimization conceptually distinct. Recommend testable technical, content, authority, and measurement work without promising rankings, citations, traffic, leads, or revenue.",
+      "focus_areas": [
+        "technical and on-page SEO",
+        "answer-first AEO content and eligibility",
+        "GEO entity clarity, retrieval, and citation-worthiness",
+        "original evidence and expert attribution",
+        "platform evidence gaps and measurement boundaries"
+      ]
+    }
+  ]
+}
