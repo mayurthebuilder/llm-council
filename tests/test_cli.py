@@ -38,10 +38,14 @@ def test_help_describes_safe_defaults_and_explicit_run_command() -> None:
     assert "GEO (Generative Engine Optimization)" in help_text
     assert "generative understanding, retrieval, and citation" in help_text
     assert "industry labels" in help_text
-    assert "no special optimization, markup, or schema" in help_text
-    assert "foundational SEO" in help_text
-    assert "people-first content" in help_text
-    assert "reject shortcut hacks" in help_text
+    assert "Google's generative AI Search features" in help_text
+    assert "no special AI-specific optimization, markup, or schema" in help_text
+    assert "beyond foundational SEO and people-first content" in help_text
+    assert "Other platforms vary" in help_text
+    assert "conventional supported structured data" in help_text
+    assert "eligibility for search features" in help_text
+    assert "recognized by search engines" not in help_text
+    assert "reject shortcut hacks" in help_text.lower()
     assert "not guarantee" in help_text
     assert "installing llm-council[google]" in help_text
     root_help = " ".join(
@@ -51,6 +55,13 @@ def test_help_describes_safe_defaults_and_explicit_run_command() -> None:
     assert "SEO" in root_help
     assert "Answer Engine Optimization" in root_help
     assert "Generative Engine Optimization" in root_help
+    assert "Google's generative AI Search features" in root_help
+    assert "no special AI-specific optimization, markup, or schema" in root_help
+    assert "beyond foundational SEO and people-first content" in root_help
+    assert "Other platforms vary" in root_help
+    assert "conventional supported structured data" in root_help
+    assert "eligibility for search features" in root_help
+    assert "recognized by search engines" not in root_help
 
 
 @pytest.mark.parametrize("provider_args", [[], ["--provider", "demo"]])

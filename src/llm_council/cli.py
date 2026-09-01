@@ -63,8 +63,11 @@ app = typer.Typer(
         "LLM Council for Digital Marketing: five specialist perspectives and one structured "
         "decision. SEO covers conventional search foundations; AEO (Answer Engine Optimization) "
         "supports answer eligibility and clarity; GEO (Generative Engine Optimization) supports "
-        "generative understanding, retrieval, and citation. These methods do not guarantee "
-        "outcomes. Offline demo by default."
+        "generative understanding, retrieval, and citation. Google's generative AI Search "
+        "features require no special AI-specific optimization, markup, or schema beyond "
+        "foundational SEO and people-first content. Other platforms vary; conventional "
+        "supported structured data may still provide eligibility for search features. These "
+        "methods do not guarantee outcomes. Offline demo by default."
     ),
     no_args_is_help=True,
     add_completion=False,
@@ -115,12 +118,14 @@ def run(
     Demo returns a fixed simulated B2B SaaS digital marketing decision, not an
     analysis of your question. AEO (Answer Engine Optimization) supports answer
     eligibility and clarity; GEO (Generative Engine Optimization) supports generative
-    understanding, retrieval, and citation. AEO and GEO are industry labels with
-    no special optimization, markup, or schema recognized by search engines. Build on
-    foundational SEO and people-first content; reject shortcut hacks. SEO, AEO, and
-    GEO do not guarantee rankings, citations, traffic, or revenue. Google additionally
-    requires installing llm-council\[google]. No context is read unless --context-file
-    is supplied. Progress and notices go to stderr.
+    understanding, retrieval, and citation. AEO and GEO are industry labels. Google's
+    generative AI Search features require no special AI-specific optimization, markup,
+    or schema beyond foundational SEO and people-first content. Other platforms vary;
+    conventional supported structured data may still provide eligibility for search
+    features. Reject shortcut hacks. SEO, AEO, and GEO do not guarantee rankings,
+    citations, traffic, or revenue. Google additionally requires installing
+    llm-council\[google]. No context is read unless --context-file is supplied. Progress
+    and notices go to stderr.
     """
     try:
         request = _validate_request(question, timeout, seed, model, provider, format)

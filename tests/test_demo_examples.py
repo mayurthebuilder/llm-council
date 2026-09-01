@@ -45,13 +45,19 @@ def test_timing_normalization_preserves_nonmetadata_content_and_trailing_newline
 def test_public_docs_describe_untrusted_markdown_and_current_google_boundary() -> None:
     root = Path(__file__).parents[1]
     readme = (root / "README.md").read_text(encoding="utf-8")
+    readme_text = " ".join(readme.split())
     reproduction = (root / "examples" / "README.md").read_text(encoding="utf-8")
 
     assert "escaped Markdown" not in readme
     assert "Markdown preserves untrusted model text" in readme
     assert "industry labels" in readme
-    assert "no special optimization, markup, or schema" in readme
-    assert "foundational SEO and people-first content" in readme
+    assert "Google's current guidance" in readme
+    assert "no special AI-specific optimization, markup, or schema" in readme
+    assert "beyond foundational SEO and people-first content" in readme
+    assert "Other platforms vary" in readme
+    assert "Conventional structured data supported by Google" in readme_text
+    assert "eligibility for applicable Search features" in readme_text
+    assert "recognized by search engines" not in readme
     assert "AEO/GEO hacks" in readme
     assert "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide" in readme
     assert reproduction.count("--overwrite") == 2

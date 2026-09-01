@@ -36,10 +36,13 @@ These related disciplines are not synonyms:
 | **AEO — Answer Engine Optimization** | Clear, trustworthy, answer-first information that can be eligible for featured answers and conversational retrieval. |
 | **GEO — Generative Engine Optimization** | Entity clarity, original evidence, expert attribution, and retrievable/citation-worthy content for generative search experiences. |
 
-The council treats AEO and GEO as useful industry labels with no special optimization, markup, or schema
-recognized by search engines. Its recommendations build on foundational SEO and people-first content,
-and reject AEO/GEO hacks or shortcuts. Search and generative systems change; no tactic can ensure a
-ranking, answer inclusion, citation, traffic, or commercial result. See Google's current
+The council treats AEO and GEO as useful industry labels. Google's current guidance says its
+generative AI Search features require no special AI-specific optimization, markup, or schema
+beyond foundational SEO and people-first content. Other platforms vary. Conventional structured
+data supported by Google may still provide eligibility for applicable Search features; it is not
+an AI-specific requirement. The council rejects AEO/GEO hacks or shortcuts. Search and generative
+systems change; no tactic can ensure a ranking, answer inclusion, citation, traffic, or commercial
+result. See Google's current
 [AI features and your website](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide)
 guidance before acting on search recommendations.
 
