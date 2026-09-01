@@ -45,12 +45,24 @@ def test_models_are_frozen_and_reject_unknown_fields() -> None:
 
 def test_default_advisors_cover_the_five_required_lenses() -> None:
     assert [advisor.lens for advisor in DEFAULT_ADVISORS] == [
-        "strategy",
-        "evidence",
-        "execution",
-        "adversarial",
-        "ethics",
+        "brand and audience strategy",
+        "growth and channel strategy",
+        "SEO, AEO, and GEO strategy",
+        "creative and content strategy",
+        "measurement and marketing risk",
     ]
+
+
+def test_default_advisors_make_digital_marketing_and_search_boundaries_explicit() -> None:
+    roster = "\n".join(
+        f"{advisor.lens}: {advisor.instructions}" for advisor in DEFAULT_ADVISORS
+    )
+
+    for capability in ("SEO", "AEO", "GEO"):
+        assert capability in roster
+    for boundary in ("rankings", "citations", "traffic", "revenue"):
+        assert boundary in roster
+    assert "current search-platform evidence" in roster
 
 
 def test_config_has_safe_default_quorums_and_timeout() -> None:

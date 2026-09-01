@@ -63,3 +63,14 @@ class GoogleGenAIProvider:
         if not isinstance(text, str) or not text:
             raise ProviderError("Google provider returned an empty completion.")
         return text
+
+    async def aclose(self) -> None:
+        """Release both async and sync transports owned by the SDK client."""
+
+        try:
+            try:
+                await self._client.aio.aclose()
+            finally:
+                self._client.close()
+        except Exception:  # noqa: BLE001 - provider SDK exception types are optional.
+            raise ProviderError("Google provider cleanup failed.") from None

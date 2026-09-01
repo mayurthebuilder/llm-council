@@ -27,28 +27,48 @@ class AdvisorSpec(CouncilModel):
 DEFAULT_ADVISORS: tuple[AdvisorSpec, ...] = (
     AdvisorSpec(
         advisor_id="advisor-1",
-        lens="strategy",
-        instructions="Analyze strategic tradeoffs and second-order effects.",
+        lens="brand and audience strategy",
+        instructions=(
+            "Assess positioning, segmentation, customer insight, messaging, "
+            "differentiation, and brand consistency. Separate supplied audience facts "
+            "from hypotheses that require research."
+        ),
     ),
     AdvisorSpec(
         advisor_id="advisor-2",
-        lens="evidence",
-        instructions="Assess evidence quality, uncertainty, and missing information.",
+        lens="growth and channel strategy",
+        instructions=(
+            "Assess acquisition and lifecycle strategy, paid and organic channel mix, "
+            "funnel design, budget tradeoffs, and testable experiments."
+        ),
     ),
     AdvisorSpec(
         advisor_id="advisor-3",
-        lens="execution",
-        instructions="Assess execution feasibility, cost, and operational constraints.",
+        lens="SEO, AEO, and GEO strategy",
+        instructions=(
+            "Assess conventional SEO foundations, answer engine optimization (AEO), "
+            "and generative engine optimization (GEO) through crawlability, entity "
+            "clarity, original evidence, answer-first content, expert attribution, and "
+            "valid structured data. Identify missing current search-platform evidence. "
+            "Do not promise rankings, citations, traffic, or revenue."
+        ),
     ),
     AdvisorSpec(
         advisor_id="advisor-4",
-        lens="adversarial",
-        instructions="Red-team the leading options and expose failure modes.",
+        lens="creative and content strategy",
+        instructions=(
+            "Assess campaign concepts, content systems, distribution formats, conversion "
+            "journeys, and creative feasibility while preserving brand consistency."
+        ),
     ),
     AdvisorSpec(
         advisor_id="advisor-5",
-        lens="ethics",
-        instructions="Assess ethics, safety, and stakeholder risks.",
+        lens="measurement and marketing risk",
+        instructions=(
+            "Assess KPI design, incrementality, attribution limits, privacy, compliance, "
+            "reputational risk, and unsupported assumptions. Require measurable tests "
+            "without presenting modeled outcomes as facts."
+        ),
     ),
 )
 

@@ -15,7 +15,7 @@ def _request(phase: str) -> CompletionRequest:
     return CompletionRequest(
         phase=phase,
         system="Return a structured decision.",
-        user="A fictional billing decision.",
+        user="A fictional B2B SaaS digital marketing launch.",
         metadata={
             "advisor_id": "advisor-1",
             "lens": "strategy",
@@ -126,3 +126,24 @@ async def test_fake_chairman_uses_actual_counts() -> None:
     provider = DeterministicProvider()
     chairman = parse_model(await provider.complete(_request("chairman")), CouncilDecision)
     assert (chairman.advisor_count, chairman.review_count) == (3, 2)
+
+
+@pytest.mark.asyncio
+async def test_fake_demo_is_marketing_specific_and_names_seo_aeo_geo() -> None:
+    provider = DeterministicProvider()
+
+    advisor = parse_model(await provider.complete(_request("advisor")), AdvisorResult)
+    review = parse_model(await provider.complete(_request("review")), PeerReview)
+    chairman = parse_model(await provider.complete(_request("chairman")), CouncilDecision)
+    rendered = json.dumps(
+        {
+            "advisor": advisor.model_dump(),
+            "review": review.model_dump(),
+            "chairman": chairman.model_dump(),
+        }
+    )
+
+    assert "digital marketing" in rendered.lower()
+    for capability in ("SEO", "AEO", "GEO"):
+        assert capability in rendered
+    assert "billing" not in rendered.lower()

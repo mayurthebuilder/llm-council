@@ -10,6 +10,7 @@ from .models import (
     CouncilRequest,
     PeerReview,
 )
+from .orchestrator import CouncilEngine
 
 __version__ = "1.0.0"
 
@@ -19,6 +20,7 @@ __all__ = [
     "AdvisorSpec",
     "CouncilConfig",
     "CouncilDecision",
+    "CouncilEngine",
     "CouncilError",
     "CouncilRequest",
     "InputError",

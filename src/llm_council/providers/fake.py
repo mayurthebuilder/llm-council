@@ -45,27 +45,54 @@ def _phase_payload(request: CompletionRequest) -> dict[str, object]:
     if request.phase == "advisor":
         return {
             "response_id": "draft-response",
-            "analysis": "The hosted option reduces near-term implementation risk.",
-            "recommendation": "Run a time-boxed hosted billing pilot before committing.",
-            "assumptions": ["The team needs a launch path within one quarter."],
-            "evidence_references": ["The supplied fictional decision brief."],
-            "risks": ["A hosted provider can create migration costs."],
+            "analysis": (
+                "A staged digital marketing launch can connect audience positioning, "
+                "channel tests, and trustworthy discoverable content."
+            ),
+            "recommendation": (
+                "Run a measured 90-day digital marketing launch before scaling spend."
+            ),
+            "assumptions": ["The fictional team can support one focused launch segment."],
+            "evidence_references": ["Only the supplied fictional marketing brief."],
+            "risks": ["Audience and channel assumptions lack current performance evidence."],
         }
     if request.phase == "review":
         return {
             "reviewer_id": str(request.metadata.get("advisor_id", "reviewer")),
             "ranked_response_ids": request.metadata.get("candidate_response_ids", ["Response A"]),
-            "critique": "The response makes its tradeoff explicit.",
-            "missing_evidence": ["Comparable implementation cost estimates."],
+            "critique": "The response proposes a bounded digital marketing test.",
+            "missing_evidence": ["Current search demand, channel benchmarks, and customer research."],
         }
     return {
-        "recommendation": "Use a hosted billing pilot with a clear exit plan.",
-        "rationale": ["It limits delivery risk while preserving a later build decision."],
-        "consensus": ["Near-term delivery risk matters."],
-        "dissent": ["A custom system may provide greater long-term control."],
-        "assumptions": ["The fictional product scope remains stable during the pilot."],
-        "risks": ["The pilot could underrepresent integration complexity."],
-        "next_actions": ["Define pilot success criteria and migration triggers."],
+        "recommendation": (
+            "Run a 90-day digital marketing launch for one B2B segment, pairing SEO "
+            "foundations with testable AEO and GEO content practices."
+        ),
+        "rationale": [
+            "A bounded launch links positioning, content, channels, and measurement before scaling."
+        ],
+        "consensus": [
+            (
+                "Use people-first original evidence, clear entity information, crawlable pages, "
+                "and concise answer-first content."
+            )
+        ],
+        "dissent": [
+            (
+                "Paid acquisition may accelerate learning, but its budget share should depend on "
+                "observed lead quality and conversion data."
+            )
+        ],
+        "assumptions": ["The fictional company has no verified baseline for qualified demand."],
+        "risks": [
+            "SEO, AEO, and GEO tactics cannot guarantee rankings, citations, traffic, or revenue."
+        ],
+        "next_actions": [
+            (
+                "Validate the audience, publish one evidence-led topic cluster, define "
+                "qualified-demand KPIs, and run instrumented channel experiments."
+            )
+        ],
         "confidence": "moderate",
         "advisor_count": request.metadata.get("advisor_count", 5),
         "review_count": request.metadata.get("review_count", 5),
