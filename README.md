@@ -7,8 +7,8 @@
 
 A privacy-conscious, typed Python CLI that turns one digital-marketing question into
 five specialist analyses, five identity-blind peer reviews, and one structured chairman
-decision. It is strategy-first and execution-aware across positioning, growth channels,
-creative/content, measurement, SEO, AEO, and GEO.
+decision. It puts digital strategy first while staying execution-aware across positioning,
+growth channels, creative/content, measurement, SEO, AEO, and GEO.
 
 > This is decision support—not an autonomous campaign publisher or an outcome predictor.
 > It does not guarantee rankings, citations, traffic, leads, or revenue.
