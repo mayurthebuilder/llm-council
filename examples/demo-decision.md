@@ -1,4 +1,4 @@
-# Council Decision
+# LLM Council for Digital Marketing — Council Decision
 
 ## Recommendation
 

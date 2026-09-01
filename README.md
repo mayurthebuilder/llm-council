@@ -23,7 +23,7 @@ growth channels, creative/content, measurement, SEO, AEO, and GEO.
   credential-free, and zero-network.
 - **Explicit privacy boundary:** the tool reads only the question and an optional context file
   explicitly named by the user. It does not search the repository, home folder, or chat history.
-- **Safe outputs:** canonical JSON plus escaped Markdown and self-contained HTML, with secure
+- **Safe outputs:** canonical JSON, readable Markdown, and escaped self-contained HTML, with secure
   local publication controls on supported POSIX platforms.
 
 ## SEO, AEO, and GEO
@@ -36,9 +36,12 @@ These related disciplines are not synonyms:
 | **AEO — Answer Engine Optimization** | Clear, trustworthy, answer-first information that can be eligible for featured answers and conversational retrieval. |
 | **GEO — Generative Engine Optimization** | Entity clarity, original evidence, expert attribution, and retrievable/citation-worthy content for generative search experiences. |
 
-The council recommends testable practices and calls out missing current evidence. Search and
-generative systems change; no tactic can ensure a ranking, answer inclusion, citation, traffic,
-or commercial result.
+The council treats AEO and GEO as useful industry labels with no special optimization, markup, or schema
+recognized by search engines. Its recommendations build on foundational SEO and people-first content,
+and reject AEO/GEO hacks or shortcuts. Search and generative systems change; no tactic can ensure a
+ranking, answer inclusion, citation, traffic, or commercial result. See Google's current
+[AI features and your website](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide)
+guidance before acting on search recommendations.
 
 ## One-command offline demo
 
@@ -109,7 +112,8 @@ available for a live generation test for this release.
 - Context is accepted only through `--context-file`, must be UTF-8, use an allowed text
   extension, stay inside the current working directory, and contain no symlink components.
 - No telemetry, implicit history, cache, or prompt persistence is implemented.
-- Provider/model text is untrusted and strictly parsed into Pydantic models. HTML is escaped.
+- Provider/model text is untrusted and strictly parsed into Pydantic models. Markdown preserves untrusted model text
+  for readability; treat it as data when embedding or converting it. HTML is escaped.
 - File publication uses descriptor-relative, no-follow operations tested on macOS/Linux.
   Unsupported platforms fail closed for file output; stdout rendering remains available.
 - Another process can rename an already-published report directory. The writer avoids a

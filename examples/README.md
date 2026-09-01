@@ -8,16 +8,23 @@ llm-council run \
   --question "How should a fictional B2B SaaS launch build qualified demand across digital channels?" \
   --context-file examples/digital-marketing-launch-context.md \
   --format markdown \
-  --output examples/demo-decision.md
+  --output examples/demo-decision.md \
+  --overwrite
 
 llm-council run \
   --question "How should a fictional B2B SaaS launch build qualified demand across digital channels?" \
   --context-file examples/digital-marketing-launch-context.md \
   --format html \
-  --output examples/demo-decision.html
+  --output examples/demo-decision.html \
+  --overwrite
 ```
 
 For a stable repository diff, only execution metadata fields ending in `_seconds` are normalized
 to `0.0` after generation. No recommendation, rationale, risk, or other decision content is
 changed. The deterministic provider returns a fixed fictional simulation, does not analyze the
 question/context, and makes no network request.
+
+```bash
+python scripts/normalize_demo_timing.py \
+  examples/demo-decision.md examples/demo-decision.html
+```

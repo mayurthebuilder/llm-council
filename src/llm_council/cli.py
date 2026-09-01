@@ -115,10 +115,12 @@ def run(
     Demo returns a fixed simulated B2B SaaS digital marketing decision, not an
     analysis of your question. AEO (Answer Engine Optimization) supports answer
     eligibility and clarity; GEO (Generative Engine Optimization) supports generative
-    understanding, retrieval, and citation. SEO, AEO, and GEO do not guarantee
-    rankings, citations, traffic, or revenue. Google additionally requires installing
-    llm-council\[google]. No context is read unless --context-file is supplied.
-    Progress and notices go to stderr.
+    understanding, retrieval, and citation. AEO and GEO are industry labels with
+    no special optimization, markup, or schema recognized by search engines. Build on
+    foundational SEO and people-first content; reject shortcut hacks. SEO, AEO, and
+    GEO do not guarantee rankings, citations, traffic, or revenue. Google additionally
+    requires installing llm-council\[google]. No context is read unless --context-file
+    is supplied. Progress and notices go to stderr.
     """
     try:
         request = _validate_request(question, timeout, seed, model, provider, format)

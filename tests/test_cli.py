@@ -37,6 +37,11 @@ def test_help_describes_safe_defaults_and_explicit_run_command() -> None:
     assert "answer eligibility and clarity" in help_text
     assert "GEO (Generative Engine Optimization)" in help_text
     assert "generative understanding, retrieval, and citation" in help_text
+    assert "industry labels" in help_text
+    assert "no special optimization, markup, or schema" in help_text
+    assert "foundational SEO" in help_text
+    assert "people-first content" in help_text
+    assert "reject shortcut hacks" in help_text
     assert "not guarantee" in help_text
     assert "installing llm-council[google]" in help_text
     root_help = " ".join(
@@ -93,7 +98,9 @@ def test_formats_keep_stdout_free_of_cli_notices(format_name: str) -> None:
         assert result.stdout.startswith("<!doctype html>")
         assert result.stdout.rstrip().endswith("</html>")
     else:
-        assert result.stdout.startswith("# Council Decision")
+        assert result.stdout.startswith(
+            "# LLM Council for Digital Marketing — Council Decision"
+        )
 
 
 def test_explicit_context_timeout_and_seed_reach_real_engine(

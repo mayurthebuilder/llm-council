@@ -25,7 +25,7 @@ def render_markdown(decision: CouncilDecision) -> str:
     """Return a fixed, readable Markdown representation of a decision."""
 
     sections = [
-        "# Council Decision",
+        "# LLM Council for Digital Marketing — Council Decision",
         "",
         "## Recommendation",
         "",
@@ -45,7 +45,7 @@ def render_markdown(decision: CouncilDecision) -> str:
     ]
     if decision.execution_metadata:
         sections.extend(["", _markdown_list_section("Execution Metadata", _metadata_lines(decision))])
-    return "\n".join(sections) + "\n"
+    return "\n".join(sections).rstrip("\n") + "\n"
 
 
 def render_html(decision: CouncilDecision) -> str:
@@ -59,7 +59,7 @@ def render_html(decision: CouncilDecision) -> str:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Council Decision</title>
+<title>LLM Council for Digital Marketing — Council Decision</title>
 <style>
 :root {{ color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #172033; background: #f4f7fb; }}
 body {{ margin: 0; line-height: 1.55; }}
@@ -79,7 +79,7 @@ ul {{ padding-left: 1.25rem; }} li + li {{ margin-top: .45rem; }}
 <body>
 <main>
 <article>
-<header><h1>Council Decision</h1><p>{_escape(decision.recommendation)}</p></header>
+<header><h1>LLM Council for Digital Marketing — Council Decision</h1><p>{_escape(decision.recommendation)}</p></header>
 {_html_section("Rationale", decision.rationale)}
 {_html_section("Consensus", decision.consensus)}
 {_html_section("Dissent", decision.dissent)}

@@ -40,7 +40,8 @@ def test_json_renderer_round_trips_canonical_model_data() -> None:
 def test_markdown_renderer_preserves_readable_untrusted_text() -> None:
     rendered = render_markdown(_decision())
 
-    assert "# Council Decision" in rendered
+    assert rendered.startswith("# LLM Council for Digital Marketing — Council Decision\n")
+    assert rendered.endswith("\n") and not rendered.endswith("\n\n")
     assert "Choose <script>alert('x')</script> & scale ☃." in rendered
     assert "Markdown **must** remain readable & useful." in rendered
     assert "## Next Actions" in rendered
@@ -51,7 +52,8 @@ def test_html_renderer_escapes_untrusted_text_and_uses_only_fixed_markup() -> No
 
     assert "&lt;script&gt;alert(&#x27;x&#x27;)&lt;/script&gt; &amp; scale ☃." in rendered
     assert "<script>" not in rendered
-    assert "<h1>Council Decision</h1>" in rendered
+    assert "<title>LLM Council for Digital Marketing — Council Decision</title>" in rendered
+    assert "<h1>LLM Council for Digital Marketing — Council Decision</h1>" in rendered
     assert "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" in rendered
 
 
