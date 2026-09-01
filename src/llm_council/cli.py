@@ -110,14 +110,14 @@ def run(
         str | None, typer.Option(metavar="INTEGER", help="Seed anonymous label shuffling, not model output.")
     ] = None,
 ) -> None:
-    """Run a digital marketing council offline or opt into Google with GOOGLE_API_KEY.
+    r"""Run a digital marketing council offline or opt into Google with GOOGLE_API_KEY.
 
     Demo returns a fixed simulated B2B SaaS digital marketing decision, not an
     analysis of your question. AEO (Answer Engine Optimization) supports answer
     eligibility and clarity; GEO (Generative Engine Optimization) supports generative
     understanding, retrieval, and citation. SEO, AEO, and GEO do not guarantee
     rankings, citations, traffic, or revenue. Google additionally requires installing
-    llm-council[google]. No context is read unless --context-file is supplied.
+    llm-council\[google]. No context is read unless --context-file is supplied.
     Progress and notices go to stderr.
     """
     try:

@@ -38,6 +38,7 @@ def test_help_describes_safe_defaults_and_explicit_run_command() -> None:
     assert "GEO (Generative Engine Optimization)" in help_text
     assert "generative understanding, retrieval, and citation" in help_text
     assert "not guarantee" in help_text
+    assert "installing llm-council[google]" in help_text
     root_help = " ".join(
         runner.invoke(cli.app, ["--help"], terminal_width=120).stdout.split()
     )
