@@ -14,10 +14,8 @@ Digital Marketing, with first-class AEO and GEO coverage.
 
 ## Task M2: Marketing demo and CLI (TDD)
 
-- Convert the interrupted CLI work from billing to a fictional B2B SaaS digital
-  marketing launch.
-- Add a sanitized `examples/digital-marketing-launch-context.md` and remove the
-  billing example.
+- Center the CLI on a fictional B2B SaaS digital marketing launch.
+- Keep a sanitized `examples/digital-marketing-launch-context.md` as the public example.
 - Ensure help/notices say that demo output is fixed and simulated.
 - Test JSON, Markdown, HTML, explicit context, safe failures, Google cleanup, and
   zero-network demo behavior.
@@ -45,4 +43,3 @@ Digital Marketing, with first-class AEO and GEO coverage.
   clearly that the adapter is mocked and offline-tested.
 - Update the GitHub repository description to the approved digital-marketing
   positioning only after the branch passes all gates.
-

@@ -2,7 +2,7 @@
 
 **Status:** Approved for implementation  
 **Date:** 2026-09-01  
-**Extends:** `2026-08-30-llm-council-portfolio-v2-design.md`
+**Scope:** Public digital-marketing release
 
 ## Product position
 
@@ -100,7 +100,7 @@ limitations of model-generated strategy.
 
 1. All five default advisors are marketing specialists, including one explicit
    SEO/AEO/GEO role.
-2. No billing or generic build-versus-buy demo remains in user-facing assets.
+2. No non-marketing demo remains in user-facing assets.
 3. Offline demo and evaluation fixtures are fictional, deterministic, and clearly
    labelled simulated.
 4. README and CLI explain AEO and GEO without promising outcomes.
@@ -108,4 +108,3 @@ limitations of model-generated strategy.
    continue to pass.
 6. Full tracked-content and Git-history scans contain no personal Gmail address,
    private path, session URL, or secret.
-
