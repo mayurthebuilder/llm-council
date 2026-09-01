@@ -60,9 +60,11 @@ class _SafeGroup(TyperGroup):
 app = typer.Typer(
     cls=_SafeGroup,
     help=(
-        "LLM Council for Digital Marketing: five specialist perspectives, blind peer review, "
-        "and one structured decision across growth, content, SEO, AEO, GEO, and measurement. "
-        "Offline demo by default."
+        "LLM Council for Digital Marketing: five specialist perspectives and one structured "
+        "decision. SEO covers conventional search foundations; AEO (Answer Engine Optimization) "
+        "supports answer eligibility and clarity; GEO (Generative Engine Optimization) supports "
+        "generative understanding, retrieval, and citation. These methods do not guarantee "
+        "outcomes. Offline demo by default."
     ),
     no_args_is_help=True,
     add_completion=False,
@@ -111,7 +113,9 @@ def run(
     """Run a digital marketing council offline or opt into Google with GOOGLE_API_KEY.
 
     Demo returns a fixed simulated B2B SaaS digital marketing decision, not an
-    analysis of your question. It includes SEO, AEO, and GEO without promising
+    analysis of your question. AEO (Answer Engine Optimization) supports answer
+    eligibility and clarity; GEO (Generative Engine Optimization) supports generative
+    understanding, retrieval, and citation. SEO, AEO, and GEO do not guarantee
     rankings, citations, traffic, or revenue. Google additionally requires installing
     llm-council[google]. No context is read unless --context-file is supplied.
     Progress and notices go to stderr.

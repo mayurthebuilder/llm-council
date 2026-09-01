@@ -88,8 +88,8 @@ async def test_google_adapter_lazily_imports_sdk_and_forwards_json_configuration
     assert calls["config"] == {
         "system_instruction": "Return only JSON.",
         "response_mime_type": "application/json",
-        "temperature": 0.2,
     }
+    assert "temperature" not in calls["config"]
 
 
 def test_google_adapter_uses_explicit_model_override(monkeypatch: pytest.MonkeyPatch) -> None:

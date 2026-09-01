@@ -21,6 +21,7 @@ runner = CliRunner()
 def test_help_describes_safe_defaults_and_explicit_run_command() -> None:
     result = runner.invoke(cli.app, ["run", "--help"], terminal_width=120)
     assert result.exit_code == 0
+    help_text = " ".join(result.stdout.split())
     for option in (
         "--question", "--context-file", "--provider", "--model", "--format",
         "--output", "--overwrite", "--timeout", "--seed",
@@ -30,11 +31,20 @@ def test_help_describes_safe_defaults_and_explicit_run_command() -> None:
     assert "offline" in result.stdout.lower()
     assert "GOOGLE_API_KEY" in result.stdout
     assert "gemini-3.7-flash" in result.stdout
-    assert "digital marketing" in result.stdout.lower()
-    assert "SEO" in result.stdout
-    assert "AEO" in result.stdout
-    assert "GEO" in result.stdout
-    assert "run" in runner.invoke(cli.app, ["--help"]).stdout
+    assert "digital marketing" in help_text.lower()
+    assert "SEO" in help_text
+    assert "AEO (Answer Engine Optimization)" in help_text
+    assert "answer eligibility and clarity" in help_text
+    assert "GEO (Generative Engine Optimization)" in help_text
+    assert "generative understanding, retrieval, and citation" in help_text
+    assert "not guarantee" in help_text
+    root_help = " ".join(
+        runner.invoke(cli.app, ["--help"], terminal_width=120).stdout.split()
+    )
+    assert "run" in root_help
+    assert "SEO" in root_help
+    assert "Answer Engine Optimization" in root_help
+    assert "Generative Engine Optimization" in root_help
 
 
 @pytest.mark.parametrize("provider_args", [[], ["--provider", "demo"]])

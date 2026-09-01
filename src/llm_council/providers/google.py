@@ -47,7 +47,6 @@ class GoogleGenAIProvider:
             config = self._types.GenerateContentConfig(
                 system_instruction=request.system,
                 response_mime_type="application/json",
-                temperature=0.2,
             )
             response = await self._client.aio.models.generate_content(
                 model=self.model,
