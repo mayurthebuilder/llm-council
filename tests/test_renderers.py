@@ -280,3 +280,56 @@ def test_write_output_never_deletes_another_writers_leaf_after_publication(
     assert output == nested / "report.md"
     assert not (external / "report.md").exists()
     assert (held / "report.md").read_text(encoding="utf-8") == "other writer"
+
+
+@pytest.mark.parametrize("kind", ["symlink", "directory"])
+def test_entry_exists_rejects_non_regular_destinations(tmp_path: Path, kind: str) -> None:
+    target = tmp_path / "report.md"
+    if kind == "symlink":
+        source = tmp_path / "source.md"
+        source.write_text("source", encoding="utf-8")
+        target.symlink_to(source)
+    else:
+        target.mkdir()
+    descriptor = os.open(tmp_path, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        with pytest.raises(OutputError):
+            renderers._entry_exists(descriptor, target.name)
+    finally:
+        os.close(descriptor)
+
+
+def test_write_output_rejects_destination_changed_before_create(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = tmp_path / "project"
+    root.mkdir()
+    monkeypatch.setattr(renderers, "_destination_is_current", lambda *args: False)
+
+    with pytest.raises(OutputError, match="changed"):
+        write_output("decision", Path("report.md"), root)
+
+
+def test_publish_converts_link_failure_to_output_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = tmp_path / "project"
+    root.mkdir()
+
+    def fail_link(*args: object, **kwargs: object) -> None:
+        raise OSError("unsupported")
+
+    monkeypatch.setattr(renderers.os, "link", fail_link)
+
+    with pytest.raises(OutputError, match="Unable to write"):
+        write_output("decision", Path("report.md"), root)
+
+
+def test_temporary_name_exhaustion_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    def collide(*args: object, **kwargs: object) -> int:
+        raise FileExistsError
+
+    monkeypatch.setattr(renderers.os, "open", collide)
+
+    with pytest.raises(OutputError, match="reserve"):
+        renderers._create_temporary_file(1)

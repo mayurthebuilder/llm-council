@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install project and development tools
+        run: python -m pip install '.[dev]'
+      - name: Run offline test suite with enforced coverage
+        run: python -m pytest -q --cov=llm_council --cov-report=term-missing
+      - name: Lint
+        run: python -m ruff check .
+      - name: Type-check
+        run: python -m mypy src
+      - name: Smoke-test deterministic CLI
+        run: llm-council run --question "Fictional digital marketing launch" --format json > /tmp/council.json
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Build distributions
+        run: |
+          python -m pip install '.[dev]'
+          python -m build
+      - name: Verify typed wheel and fresh install
+        run: |
+          python - <<'PY'
+          import glob
+          import zipfile
+          wheel = glob.glob("dist/*.whl")
+          assert len(wheel) == 1
+          with zipfile.ZipFile(wheel[0]) as archive:
+              assert "llm_council/py.typed" in archive.namelist()
+          PY
+          python -m venv /tmp/council-smoke
+          /tmp/council-smoke/bin/python -m pip install dist/*.whl
+          /tmp/council-smoke/bin/llm-council run --question "Fictional SEO, AEO, and GEO plan" --format json > /tmp/fresh-council.json
+      - name: Verify optional Google SDK compatibility without generation
+        env:
+          GOOGLE_API_KEY: ci-placeholder-not-a-credential
+        run: |
+          python -m pip install '.[google]'
+          python - <<'PY'
+          import asyncio
+          from llm_council.providers.google import DEFAULT_MODEL, GoogleGenAIProvider
+          assert DEFAULT_MODEL == "gemini-3.7-flash"
+          provider = GoogleGenAIProvider()
+          asyncio.run(provider.aclose())
+          PY
