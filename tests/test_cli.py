@@ -18,9 +18,15 @@ from llm_council.providers.fake import DeterministicProvider
 runner = CliRunner()
 
 
-def test_help_describes_safe_defaults_and_explicit_run_command() -> None:
-    result = runner.invoke(cli.app, ["run", "--help"], terminal_width=120)
+def test_help_describes_safe_defaults_and_explicit_run_command(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("FORCE_COLOR", "1")
+    result = runner.invoke(
+        cli.app, ["run", "--help"], terminal_width=120, color=False
+    )
     assert result.exit_code == 0
+    assert "\x1b[" not in result.stdout
     help_text = " ".join(result.stdout.split())
     for option in (
         "--question", "--context-file", "--provider", "--model", "--format",
@@ -48,9 +54,12 @@ def test_help_describes_safe_defaults_and_explicit_run_command() -> None:
     assert "reject shortcut hacks" in help_text.lower()
     assert "not guarantee" in help_text
     assert "installing llm-council[google]" in help_text
-    root_help = " ".join(
-        runner.invoke(cli.app, ["--help"], terminal_width=120).stdout.split()
+    root_result = runner.invoke(
+        cli.app, ["--help"], terminal_width=120, color=False
     )
+    assert root_result.exit_code == 0
+    assert "\x1b[" not in root_result.stdout
+    root_help = " ".join(root_result.stdout.split())
     assert "run" in root_help
     assert "SEO" in root_help
     assert "Answer Engine Optimization" in root_help
