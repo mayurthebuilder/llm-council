@@ -7,6 +7,7 @@ from types import ModuleType, SimpleNamespace
 from typing import Any
 
 import pytest
+from rich.text import Text
 from typer.testing import CliRunner
 
 import llm_council.providers.google as google_provider
@@ -18,6 +19,12 @@ from llm_council.providers.fake import DeterministicProvider
 runner = CliRunner()
 
 
+def _plain_terminal_output(output: str) -> str:
+    """Return semantic terminal text independent of ANSI styling in CI."""
+
+    return Text.from_ansi(output).plain
+
+
 def test_help_describes_safe_defaults_and_explicit_run_command(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -26,17 +33,17 @@ def test_help_describes_safe_defaults_and_explicit_run_command(
         cli.app, ["run", "--help"], terminal_width=120, color=False
     )
     assert result.exit_code == 0
-    assert "\x1b[" not in result.stdout
-    help_text = " ".join(result.stdout.split())
+    run_help = _plain_terminal_output(result.stdout)
+    help_text = " ".join(run_help.split())
     for option in (
         "--question", "--context-file", "--provider", "--model", "--format",
         "--output", "--overwrite", "--timeout", "--seed",
     ):
-        assert option in result.stdout
-    assert "demo" in result.stdout
-    assert "offline" in result.stdout.lower()
-    assert "GOOGLE_API_KEY" in result.stdout
-    assert "gemini-3.7-flash" in result.stdout
+        assert option in run_help
+    assert "demo" in run_help
+    assert "offline" in run_help.lower()
+    assert "GOOGLE_API_KEY" in run_help
+    assert "gemini-3.7-flash" in run_help
     assert "digital marketing" in help_text.lower()
     assert "SEO" in help_text
     assert "AEO (Answer Engine Optimization)" in help_text
@@ -58,8 +65,7 @@ def test_help_describes_safe_defaults_and_explicit_run_command(
         cli.app, ["--help"], terminal_width=120, color=False
     )
     assert root_result.exit_code == 0
-    assert "\x1b[" not in root_result.stdout
-    root_help = " ".join(root_result.stdout.split())
+    root_help = " ".join(_plain_terminal_output(root_result.stdout).split())
     assert "run" in root_help
     assert "SEO" in root_help
     assert "Answer Engine Optimization" in root_help
